@@ -569,7 +569,6 @@ public class GodModeControl : MonoBehaviour
 
     private void resetHighlight()
     {
-        print("ResetHIghlight");
         if (lastRenderer != null)
         {
             foreach (Material m in lastRenderer.materials)
@@ -577,19 +576,15 @@ public class GodModeControl : MonoBehaviour
                 m.shader = Shader.Find(dictLastMaterialShader[m]);
             }
             //HighLight nos gameobjects filhos
-            print("NC: " + dictLastChilds.Count());
             foreach (var gO in dictLastChilds)
             {
-                print("CHilds-<");
                 Renderer auxRenderer = gO.Key.GetComponent<Renderer>();
                 if (auxRenderer != null)
                 {
                     Dictionary<Material, string> auxDict = gO.Value;
-                    print("Materials-<");
                     foreach (Material m in auxRenderer.materials)
                     {
-                        m.shader = Shader.Find(auxDict[m]);
-                        print("Rvertendo: " + m.shader.name);
+                        m.shader = Shader.Find(auxDict[m])
                     }
                 }
                 else

@@ -7,7 +7,8 @@ using OntSenseCSharpAPI;
 using System;
 
 public class SensesManager : MonoBehaviour {
-    
+
+    private static readonly string ONT_SENSE_URL = "http://localhost:3030/ontsense";    // URL address of the triple store
     public string clientName;
     public string host = "localhost";
     public int port = 11000;
@@ -51,15 +52,17 @@ public class SensesManager : MonoBehaviour {
     private int count;
     private int batchSize;
     private DateTime atDateTime;
+    private Command getSensesCommand = null;
 
     void Awake()
     {
-        
+
         try
         {
             string ontSenseAPIDir = "OntSenseAPIServer\\OntSenseAPIServer.exe";
             System.Diagnostics.Process.Start(ontSenseAPIDir);
-        }catch(Exception e)
+        }
+        catch (Exception e)
         {
             Debug.Log("System>>> " + e.Message);
         }
@@ -96,6 +99,7 @@ public class SensesManager : MonoBehaviour {
         touchKnowQueue = new Queue<GameObject>();
         smellUnkQueue = new Queue<GameObject>();
         atDateTime = DateTime.Now;
+        Debug.Log("RHS>>> " + this.name + " is ready to receive request of Senses.");
     }
 
     /*void FixedUpdate () {
@@ -131,79 +135,113 @@ public class SensesManager : MonoBehaviour {
 
     void FixedUpdate()
     {
-        if (count % sensesRefreshRate == 0)
-        {
-            //Vision
-            objectsInFildOfVision = vision.getListOfElements();
-            visionQueue = new Queue<GameObject>(objectsInFildOfVision);
 
-            //Hear
-            soundsInHearing = hearing.getListOfElements();
-            
-            knowObjInHearing = objectsInFildOfVision.Intersect(soundsInHearing).ToList();
-            hearKnowQueue = new Queue<GameObject>(knowObjInHearing);
-            foreach (GameObject obj in knowObjInHearing)
-            {
-                soundsInHearing.Remove(obj);
-            }
-            hearUnkQueue = new Queue<GameObject>(soundsInHearing);
-            //Smell
-            odorInSmell = smell.getListOfUnknowElements();
-            smellUnkQueue = new Queue<GameObject>(odorInSmell);
-            //Touch
-            knowObjInTouch = touch.getListOfKnowElements();
-            touchKnowQueue = new Queue<GameObject>(knowObjInTouch);
-            //Unknow objects in touch
-            touchInTouch = touch.getListOfUnknowElements();
-            touchUnkQueue = new Queue<GameObject>(touchInTouch);
-            //objQueue = new Queue<GameObject>(objectsInFildOfVision.Union(soundsInHearing).Union(knowObjInHearing).Union(odorInSmell).Union(knowObjInTouch).Union(touchInTouch)); 
-            int totalSize = visionQueue.Count + touchKnowQueue.Count + touchUnkQueue.Count + hearUnkQueue.Count + 
-            hearKnowQueue.Count + smellUnkQueue.Count; 
-            batchSize = (int)Math.Ceiling((float)totalSize/sensesRefreshRate);
-            //insertVision(objectsInFildOfVision);
-            atDateTime = DateTime.Now;
-        }
-        for (int i = 0; i < batchSize; i++)
+        if (getSensesCommand != null)
         {
-            if (visionQueue.Count > 0)
+            switch (getSensesCommand.getActionStateID())
             {
-                insertVision(visionQueue.Dequeue(), atDateTime);
+                case (int)GetSenses.Start:
+                    //if (count % sensesRefreshRate == 0){
+                    Debug.Log("Command>>> " + this.name + " command " + getSensesCommand.getId() + " Started!");
+                    //Vision
+                    objectsInFildOfVision = vision.getListOfElements();
+                    visionQueue = new Queue<GameObject>(objectsInFildOfVision);
+
+                    //Hear
+                    soundsInHearing = hearing.getListOfElements();
+
+                    knowObjInHearing = objectsInFildOfVision.Intersect(soundsInHearing).ToList();
+                    hearKnowQueue = new Queue<GameObject>(knowObjInHearing);
+                    foreach (GameObject obj in knowObjInHearing)
+                    {
+                        soundsInHearing.Remove(obj);
+                    }
+                    hearUnkQueue = new Queue<GameObject>(soundsInHearing);
+                    //Smell
+                    odorInSmell = smell.getListOfUnknowElements();
+                    smellUnkQueue = new Queue<GameObject>(odorInSmell);
+                    //Touch
+                    knowObjInTouch = touch.getListOfKnowElements();
+                    touchKnowQueue = new Queue<GameObject>(knowObjInTouch);
+                    //Unknow objects in touch
+                    touchInTouch = touch.getListOfUnknowElements();
+                    touchUnkQueue = new Queue<GameObject>(touchInTouch);
+                    //objQueue = new Queue<GameObject>(objectsInFildOfVision.Union(soundsInHearing).Union(knowObjInHearing).Union(odorInSmell).Union(knowObjInTouch).Union(touchInTouch)); 
+                    int totalSize = visionQueue.Count + touchKnowQueue.Count + touchUnkQueue.Count + hearUnkQueue.Count +
+                    hearKnowQueue.Count + smellUnkQueue.Count;
+                    batchSize = (int)Math.Ceiling((float)totalSize / sensesRefreshRate);
+                    //insertVision(objectsInFildOfVision);
+                    atDateTime = DateTime.Now;
+                    //}
+                    getSensesCommand.next();
+                    break;
+                case (int)GetSenses.Position:
+                   
+                    for (int i = 0; i < batchSize; i++)
+                    {
+                        if (visionQueue.Count > 0)
+                        {
+                            insertVision(visionQueue.Dequeue(), atDateTime);
+                        }
+                        else if (hearKnowQueue.Count > 0)
+                        {
+                            insertHearID(hearKnowQueue.Dequeue(), atDateTime);
+                        }
+                        else if (hearUnkQueue.Count > 0)
+                        {
+                            insertHearPos(hearUnkQueue.Dequeue(), atDateTime);
+                        }
+                        else if (touchKnowQueue.Count > 0)
+                        {
+                            insertTouchID(touchKnowQueue.Dequeue(), atDateTime);
+                        }
+                        else if (touchUnkQueue.Count > 0)
+                        {
+                            insertTouchPos(touchUnkQueue.Dequeue(), atDateTime);
+                        }
+                        else if (smellUnkQueue.Count > 0)
+                        {
+                            insertSmellPos(smellUnkQueue.Dequeue(), atDateTime);
+                        }
+                    }
+                    if (count % triggerRefreshRate == 0)
+                    {
+                        knowObjInSmell = smell.getListOfKnowElements();
+                        foreach (GameObject goSmell in knowObjInSmell)
+                        {
+                            insertSmellID(goSmell, DateTime.Now);
+                        }
+                        //Taste
+                        objectsInTaste = taste.getListOfElements();
+                        foreach (GameObject goTaste in objectsInTaste)
+                        {
+                            insertTaste(goTaste, DateTime.Now);
+                        }
+                    }
+                    count++;
+                    if (count % sensesRefreshRate == 0)
+                    {
+                        count = 0;
+                        getSensesCommand.success();
+                        Debug.Log("Command>>> " + this.name + " command " + getSensesCommand.getId() + " Success!");
+                    }
+
+                    break;
+                case (int)GetSenses.End:
+                    break;
+                default:
+                    break;
             }
-            else if (hearKnowQueue.Count > 0)
-            {
-                insertHearID(hearKnowQueue.Dequeue(), atDateTime);
-            }
-            else if (hearUnkQueue.Count > 0)
-            {
-                insertHearPos(hearUnkQueue.Dequeue(), atDateTime);
-            }
-            else if (touchKnowQueue.Count > 0)
-            {
-                insertTouchID(touchKnowQueue.Dequeue(), atDateTime);
-            }
-            else if (touchUnkQueue.Count > 0)
-            {
-                insertTouchPos(touchUnkQueue.Dequeue(), atDateTime);
-            }else if (smellUnkQueue.Count > 0)
-            {
-                insertSmellPos(smellUnkQueue.Dequeue(), atDateTime);
-            }
+                
         }
-        if (count % triggerRefreshRate == 0)
-        {
-            knowObjInSmell = smell.getListOfKnowElements();
-            foreach (GameObject goSmell in knowObjInSmell)
-            {
-                insertSmellID(goSmell,DateTime.Now);
-            }
-            //Taste
-            objectsInTaste = taste.getListOfElements();
-            foreach (GameObject goTaste in objectsInTaste)
-            {
-                insertTaste(goTaste, DateTime.Now);
-            }                       
-        }
-        count++;
+
+    }
+
+    public bool sendCommand(Command command)
+    {
+        this.getSensesCommand = command;
+        Debug.Log("Command>>> " + this.name + " received command " + command.getStringCommand() + ".");
+        return true;
     }
 
     private void insertVision(GameObject go, DateTime dt)

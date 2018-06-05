@@ -1,5 +1,5 @@
-
-   using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.UI;
 using System.Text;
+using System.Text.RegularExpressions;
 
 /*public enum CommandType
 {
@@ -41,7 +42,8 @@ public enum CommandType
     TasteLeft = 17,
     TasteRight = 18,
     Turn = 19,
-    CancelCommands = 20
+    CancelCommands = 20,
+    GetSenses = 21
 };
 
 enum ParameterType
@@ -55,7 +57,7 @@ enum ParameterType
 
 
 public class SocketCommands : MonoBehaviour
-{    
+{
     private ServerClient client;
     private List<ServerClient> disconnectList;
     private List<Command> runningCommands;
@@ -63,21 +65,21 @@ public class SocketCommands : MonoBehaviour
     //public GameObject messagePrefab;
 
     public int port = 6321;
-    private const int MAXDATASIZE =  4096;    // max number of bytes we can send at once
+    private const int MAXDATASIZE = 4096;    // max number of bytes we can send at once
     private const int BACKLOG = 10;          // how many pending connections queue will hold
     private const string DELIMITER = "<|>";
     private TcpListener server;
     private bool serverStarted;
     private SimulatorCommandsManager scm;
     private UniqueIdDistributor uid;
-    
 
-/*
-    static readonly IDictionary<int, Type> typeLookup = new Dictionary<int, Type>
-    {
-        {1, typeof(CommandWithId)}, {2, typeof(CommandWithAngle)}, {3, typeof(CommandWithoutPar)},
-        { 4, typeof(CommandWithPosition)}, {5, typeof(CommandWithString)}, {6, typeof(Response)}
-    };*/
+
+    /*
+        static readonly IDictionary<int, Type> typeLookup = new Dictionary<int, Type>
+        {
+            {1, typeof(CommandWithId)}, {2, typeof(CommandWithAngle)}, {3, typeof(CommandWithoutPar)},
+            { 4, typeof(CommandWithPosition)}, {5, typeof(CommandWithString)}, {6, typeof(Response)}
+        };*/
 
     private void Start()
     {
@@ -141,7 +143,7 @@ public class SocketCommands : MonoBehaviour
 
                     }
                     while (s.DataAvailable);
-                    string data = myCompleteMessage.ToString(); 
+                    string data = myCompleteMessage.ToString();
                     if (data != null && data != "")
                     {
                         print(">" + data.ToString() + "<");
@@ -149,18 +151,18 @@ public class SocketCommands : MonoBehaviour
                     }
                 }
                 List<Command> auxList = new List<Command>(runningCommands);
-                foreach(Command c in auxList)
+                foreach (Command c in auxList)
                 {
                     Response response;
                     switch (c.getCommandStatus())
                     {
                         case CommandStatus.Success:
-                            response= new Response { idCommand = c.getId(), executed = true };
+                            response = new Response { idCommand = c.getId(), executed = true };
                             sendResponse(response);
                             runningCommands.Remove(c);
                             break;
                         case CommandStatus.Fail:
-                             response = new Response { idCommand = c.getId(), executed = false };
+                            response = new Response { idCommand = c.getId(), executed = false };
                             runningCommands.Remove(c);
                             sendResponse(response);
                             break;
@@ -168,7 +170,7 @@ public class SocketCommands : MonoBehaviour
                             break;
                     }
                 }
-                
+
             }
             //Check for message from the client
 
@@ -230,16 +232,22 @@ public class SocketCommands : MonoBehaviour
             return;
         }*/
         Debug.Log("RHS>>> socket incoming data.");
-        processCommand(data);
+        string rest = data;
+        while (rest != "")
+        {
+            rest = processCommand(rest);
+        }
+        
+        
         //sendResponse();
     }
 
-    private void processCommand(string data)
+    private string processCommand(string data)
     {
+        string rest = "";
         string idCommand = getCommandId(data);
         CommandType commandType = getCommandType(data);
-        ParameterType parameterType = getParameterType(data);
-        
+        ParameterType parameterType = getParameterType(data,ref rest);
         if (checkCmdParType(commandType, parameterType))
         {
             ActionHand ah = getActionAndHand(commandType);
@@ -248,21 +256,21 @@ public class SocketCommands : MonoBehaviour
                 switch (parameterType)
                 {
                     case ParameterType.WithId:
-                        int id = getId(data);
+                        int id = getId(data,ref rest);
                         GameObject gO = getGameObjectById(id);
                         runningCommands.Add(scm.sendCommand(idCommand, ah.hand, ah.action, gO.transform));
                         break;
                     case ParameterType.WithPos:
-                        Position3 position = getPosition(data);
+                        Position3 position = getPosition(data, ref rest);
                         Vector3 auxPosition = new Vector3(position.x, position.y, position.z);
                         runningCommands.Add(scm.sendCommand(idCommand, ah.hand, ah.action, auxPosition));
                         break;
                     case ParameterType.WithString:
-                        string str = getText(data);
+                        string str = getText(data, ref rest);
                         runningCommands.Add(scm.sendCommand(idCommand, ah.action, str));
                         break;
                     case ParameterType.WithAngle:
-                        float angle = getAngle(data);
+                        float angle = getAngle(data, ref rest);
                         runningCommands.Add(scm.sendCommand(idCommand, ah.action, angle));
 
                         break;
@@ -283,19 +291,22 @@ public class SocketCommands : MonoBehaviour
             {
                 Response response = new Response { idCommand = idCommand, executed = false };
                 sendResponse(response);
-            }
+            }          
 
         }
+        return rest;
     }
     private GameObject getGameObjectById(int id)
     {
         GameObject gO = null;
-        if (uid.isValidId(id)){
+        if (uid.isValidId(id))
+        {
             gO = uid.getGameObjectById(id);
             if (scm.getAllPerceivedElements().Contains(gO))
             {
                 return gO;
-            }else
+            }
+            else
             {
                 return null;
             }
@@ -309,12 +320,12 @@ public class SocketCommands : MonoBehaviour
         {
             //Type type = data.GetType();
             //int field = typeLookup.Single(pair => pair.Value == type).Key;
-         //Serializer.NonGeneric.SerializeWithLengthPrefix(client.tcp.GetStream(), data, PrefixStyle.Base128, field);
-            string stringData = data.idCommand + DELIMITER + Convert.ToInt32(data.executed);
+            //Serializer.NonGeneric.SerializeWithLengthPrefix(client.tcp.GetStream(), data, PrefixStyle.Base128, field);
+            string stringData = data.idCommand + DELIMITER + Convert.ToInt32(data.executed) + DELIMITER;
             StreamWriter writer = new StreamWriter(client.tcp.GetStream());
             writer.WriteLine(stringData);
             writer.Flush();
-            if(data.executed)
+            if (data.executed)
                 Debug.Log("RHS>>>  response sended to cliente: " + data.idCommand + " command finalized with success.");
             else
                 Debug.Log("RHS>>>  response sended to cliente: " + data.idCommand + " command finalized with fail.");
@@ -361,7 +372,7 @@ public class SocketCommands : MonoBehaviour
                 actionHand = new ActionHand(Action.Move);
                 break;
             case CommandType.TakeLeft:
-                actionHand = new ActionHand(Action.Take,Hands.Left);
+                actionHand = new ActionHand(Action.Take, Hands.Left);
                 break;
             case CommandType.TakeRight:
                 actionHand = new ActionHand(Action.Take, Hands.Right);
@@ -376,7 +387,7 @@ public class SocketCommands : MonoBehaviour
                 actionHand = new ActionHand(Action.Rotate);
                 break;
             case CommandType.TasteLeft:
-                actionHand = new ActionHand(Action.Taste,Hands.Left);
+                actionHand = new ActionHand(Action.Taste, Hands.Left);
                 break;
             case CommandType.TasteRight:
                 actionHand = new ActionHand(Action.Taste, Hands.Right);
@@ -389,6 +400,9 @@ public class SocketCommands : MonoBehaviour
                 break;
             case CommandType.CancelCommands:
                 actionHand = new ActionHand(Action.Cancel);
+                break;
+            case CommandType.GetSenses:
+                actionHand = new ActionHand(Action.GetSenses);
                 break;
             default:
                 actionHand = null;
@@ -424,8 +438,12 @@ public class SocketCommands : MonoBehaviour
     string getAfter(string str)
     {
         int pos = str.IndexOf(DELIMITER); //First Delimiter
-        string subData = str.Substring(pos + DELIMITER.Length);       
-        return subData;
+        if (pos > 0)
+        {
+            string subData = str.Substring(pos + DELIMITER.Length);
+            return subData;
+        }
+        return "";
     }
 
     /*
@@ -452,6 +470,7 @@ public class SocketCommands : MonoBehaviour
     string getCommandId(string data)
     {
         string subData = getNext(data); //First Parameter
+        //string auxSubData = Regex.Replace(subData, @"\t|\n|\r", "");
         return subData;
     }
 
@@ -464,47 +483,50 @@ public class SocketCommands : MonoBehaviour
         //return subData;
     }
 
-    ParameterType getParameterType(string data)
+    ParameterType getParameterType(string data, ref string rest)
     {
         string subData = getAfter(data); //After first Parameter
         subData = getAfter(subData); //After second Parameter
-        subData = getNext(subData);
-        ParameterType parType = (ParameterType)toInt(subData);
+        string auxParType = getNext(subData);
+        ParameterType parType = (ParameterType)toInt(auxParType); 
+        rest = getAfter(subData);       
         return parType;
     }
 
-    int getId(string data)
+    int getId(string data, ref string rest)
     {
         string subData = getAfter(data); ////After first Parameter -> CommandType, ParameterType and Parameter
         subData = getAfter(subData); //After second Parameter -> ParameterType and Parameter
         subData = getAfter(subData); //After third Parameter -> Only Parameters
         subData = getNext(subData); //Third Parameter -> Parameter of command, the ID
+
         int id = toInt(subData);
+        rest = getAfter(subData);
         return id;
     }
 
-    float getAngle(string data)
+    float getAngle(string data, ref string rest)
     {
         string subData = getAfter(data); ////After first Parameter -> CommandType, ParameterType and Parameter
         subData = getAfter(subData); //After second Parameter -> ParameterType and Parameter
         subData = getAfter(subData); //After third Parameter -> Only Parameters
         subData = getNext(subData); //Third Parameter -> Parameter of command, the Angle
         float angle = toFloat(subData);
+        rest = getAfter(subData);
         return angle;
     }
 
-    string getText(string data)
+    string getText(string data, ref string rest)
     {
         string subData = getAfter(data); ////After first Parameter -> CommandType, ParameterType and Parameter
         subData = getAfter(subData); //After second Parameter -> ParameterType and Parameter
         subData = getAfter(subData); //After third Parameter -> Only Parameters
         subData = getNext(subData); //Third Parameter -> Parameter of command, the Text
+        rest = getAfter(subData);
         return subData;
     }
 
-
-
-    Position3 getPosition(string data)
+    Position3 getPosition(string data, ref string rest)
     {
         string subData = getAfter(data); ////After first Parameter -> CommandType, ParameterType and Parameter
         subData = getAfter(subData); //After second Parameter -> ParameterType and Parameter
@@ -519,6 +541,7 @@ public class SocketCommands : MonoBehaviour
         position.x = toFloat(x);
         position.y = toFloat(y);
         position.z = toFloat(z);
+        rest = getAfter(subData);
         return position;
     }
 
@@ -546,6 +569,7 @@ public class SocketCommands : MonoBehaviour
             case CommandType.TasteRight: return parType == ParameterType.WithoutParameter;
             case CommandType.Turn: return parType == ParameterType.WithId || parType == ParameterType.WithPos;
             case CommandType.CancelCommands: return parType == ParameterType.WithoutParameter;
+            case CommandType.GetSenses: return parType == ParameterType.WithoutParameter;
             default: return false;
         }
     }
@@ -575,7 +599,6 @@ public class SocketCommands : MonoBehaviour
             return useHand;
         }
     }
-
 }
 
 class Position3
@@ -593,7 +616,7 @@ class Position3
     {
         this.x = x;
         this.y = y;
-        this.z = z;        
+        this.z = z;
     }
 
 
@@ -631,6 +654,3 @@ class Response
         return "Command Id: " + idCommand + " " + auxString + "!";
     }
 }
-
-
-

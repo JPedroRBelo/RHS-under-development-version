@@ -7,6 +7,7 @@ using System.Linq;
 public class SimulatorCommandsManager : MonoBehaviour {
 
     public Transform robot = null;   
+    private Transform auxMark = null;
 
     private AgentInteraction aI;
     private AgentMovement aM;
@@ -14,12 +15,14 @@ public class SimulatorCommandsManager : MonoBehaviour {
     private AgentSpeech sp;
     private Queue<Command> commandsQueue;
     private Command atCommand;
+    private Animator animator;
 
     private VisionManager robotVision;
     private SmellManager robotSmell;
     private HearingManager robotHearing;
     private TasteManager robotTaste;
     private TouchManager robotTouch;
+    private SensesManager robotSenses;
 
     private HashSet<GameObject> allPerceivedElements;
 
@@ -48,8 +51,10 @@ public class SimulatorCommandsManager : MonoBehaviour {
         robotHearing = robot.GetComponent<HearingManager>();
         robotTaste = robot.GetComponent<TasteManager>();
         robotTouch = robot.GetComponent<TouchManager>();
+        robotSenses = GetComponent<SensesManager>();
         locationsOnScene = new List<GameObject>(GameObject.FindGameObjectsWithTag(Constants.TAG_KNOWLOCATIONS));
         
+        animator = robot.GetComponent<Animator>();
         commandsQueue= new Queue<Command>();
         aI = robot.GetComponent<AgentInteraction>();
         aM = robot.GetComponent<AgentMovement>();
@@ -177,7 +182,6 @@ public class SimulatorCommandsManager : MonoBehaviour {
             switch (atCommand.getCommandStatus())
             {                
                 case CommandStatus.Success:
-
                     return true;
                 case CommandStatus.Running:
                     return false;
@@ -192,8 +196,7 @@ public class SimulatorCommandsManager : MonoBehaviour {
         }
     }
 
-    private void execute(Command command)
-    {
+    private void execute(Command command)    {
         
         
         switch (Command.DictActions[command.getAction()].typeAction)
@@ -235,6 +238,9 @@ public class SimulatorCommandsManager : MonoBehaviour {
                 atCommand = command;
                 Debug.Log("Command>>> " + this.name + " command " + command.getId() + " Success!");
                 atCommand.success();
+                break;
+            case Action.GetSenses:
+                robotSenses.sendCommand(command);
                 break;
             default:
                 break;
@@ -281,6 +287,7 @@ public class SimulatorCommandsManager : MonoBehaviour {
         dict.Add(Action.HeadReset, "Look Off");
         dict.Add(Action.LookFor, "Look For");
         dict.Add(Action.Speak, "Speak");
+        dict.Add(Action.GetSenses, "GetSenses");
         //dict.Add(Action.Cancel, "Cancel");
         return dict;
     }
@@ -351,19 +358,18 @@ public class SimulatorCommandsManager : MonoBehaviour {
 
     private void manageCommand(Command command)
     {
-        if (command.getAction() != Action.Cancel)
+        if(Command.DictActions[command.getAction()].typeAction!=TypeAction.Operational)
+        //if (command.getAction() != Action.Cancel)
         {
-
             commandsQueue.Enqueue(command);
         }else
         {
-            execute(command);
+            doTask(command);
         }
     }
 
     public void cancelExecutation()
-    {
-        
+    {        
         if (atCommand != null)
         {
             atCommand.fail();            
@@ -372,16 +378,12 @@ public class SimulatorCommandsManager : MonoBehaviour {
         {
             commandsQueue.Dequeue().fail();
         }
-
-    }
-    
-    
+    }  
 
     public Dictionary<Action, string>   getAvailableActions()
     {
         return dictVerbs;
     }
-
 
     public string getAtCommandName()
     {

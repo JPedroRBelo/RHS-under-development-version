@@ -7,7 +7,7 @@ using System;
 public enum Hands {Left,Right};
 public enum TypeAction {Interaction,Movementation,HeadFocusing,Communication,Operational};
 
-public enum Action {Take, Release,Activate, Deactivate,Taste,Smell,Move,Turn,Rotate,HeadFocus,HeadReset,LookFor,Speak,Cancel};
+public enum Action {Take, Release,Activate, Deactivate,Taste,Smell,Move,Turn,Rotate,HeadFocus,HeadReset,LookFor,Speak,Cancel,GetSenses};
 
 /*estados de cada Action. Está em ordem de execução.
 * Caso queira adicionar um estado intermediário, colocar na ordem de chamada
@@ -35,6 +35,8 @@ public enum LookFor { Start, Position,Search,Focus,Turn,End};
 public enum Speak { Start, Position,End};
 
 public enum Cancel { Start, Position,End};
+//Send all informations about the senses of robot
+public enum GetSenses {  Start, Position, End};
 
 //Fim ações
 public enum CommandStatus {Running, Success, Fail};
@@ -52,10 +54,8 @@ public class Command{
         { Action.Activate,new Tuple<TypeAction,string>(TypeAction.Interaction,Constants.TAG_SWITCH)},
         { Action.Deactivate,new Tuple<TypeAction,string>(TypeAction.Interaction,Constants.TAG_SWITCH)},
         { Action.Release,new Tuple<TypeAction,string>(TypeAction.Interaction,Constants.TAG_LOCATION)},
-         {Action.Taste, new Tuple<TypeAction, string>(TypeAction.Interaction,Constants.TAG_OBJECT)},
-          {Action.Smell, new Tuple<TypeAction, string>(TypeAction.Interaction,Constants.TAG_OBJECT)},
-        //{ Action.OpenDoor,new Tuple<TypeAction,string>(TypeAction.Interaction,Constants.TAG_DOOR)},
-        //{ Action.CloseDoor,new Tuple<TypeAction,string>(TypeAction.Interaction,Constants.TAG_DOOR)},
+        {Action.Taste, new Tuple<TypeAction, string>(TypeAction.Interaction,Constants.TAG_OBJECT)},
+        {Action.Smell, new Tuple<TypeAction, string>(TypeAction.Interaction,Constants.TAG_OBJECT)},
         { Action.Move,new Tuple<TypeAction,string>(TypeAction.Movementation,Constants.TAG_LOCATION)},
         { Action.Turn,new Tuple<TypeAction,string>(TypeAction.Movementation,Constants.TAG_LOCATION)},
         { Action.Rotate,new Tuple<TypeAction,string>(TypeAction.Movementation,Constants.PAR_ROTATION)},
@@ -63,6 +63,7 @@ public class Command{
         { Action.HeadReset,new Tuple<TypeAction,string>(TypeAction.HeadFocusing,Constants.PAR_NULL)},
         { Action.LookFor,new Tuple<TypeAction,string>(TypeAction.HeadFocusing,Constants.PAR_STRING)},
          { Action.Speak,new Tuple<TypeAction,string>(TypeAction.Communication,Constants.PAR_STRING)},
+         {Action.GetSenses,new Tuple<TypeAction, string>(TypeAction.Operational,Constants.PAR_NULL) },
          {Action.Cancel,new Tuple<TypeAction, string>(TypeAction.Operational,Constants.PAR_NULL) }
      };
 
@@ -80,10 +81,7 @@ public class Command{
     private Release releaseState;
     private Taste tasteState;
     private Smell smellState;
-
-    /* private OpenDoor openDoorState;
-     private CloseDoor closeDoorState;*/
-
+    
     private Move moveState;
     private Turn turnState;
     private Rotate rotateState;
@@ -95,6 +93,7 @@ public class Command{
     private Speak speakState;
 
     private Cancel cancelState;
+    private GetSenses getSensesState;
 
     private CommandStatus commandStatus;
 
@@ -146,7 +145,7 @@ public class Command{
         initStates();
     }
 
-    //Look Off
+    //Look Off, Cancel, GetSenses...
     public Command(string id,Action action)
     {
         this.id = id;
@@ -215,6 +214,7 @@ public class Command{
         speakState = Speak.Start;
 
         cancelState = Cancel.Start;
+        getSensesState = GetSenses.Start;
 
         reset = true;           
     }
@@ -251,6 +251,8 @@ public class Command{
                 return (int)speakState;
             case Action.Cancel:
                 return (int)cancelState;
+            case Action.GetSenses:
+                return (int)getSensesState;
             default:
                 return -1;
         }
@@ -448,6 +450,10 @@ public class Command{
                     if (cancelState != Cancel.End)
                         cancelState += value;
                     break;
+                case Action.GetSenses:
+                    if (getSensesState != GetSenses.End)
+                        getSensesState += value;
+                    break;
                 default:
                     break;
             }
@@ -500,6 +506,9 @@ public class Command{
                 break;
             case Action.Cancel:
                 cancelState = Cancel.End;
+                break;
+            case Action.GetSenses:
+                getSensesState = GetSenses.End;
                 break;
             default:
                 break; ;
@@ -641,6 +650,8 @@ public class Command{
                 commandName += ": " + refName;
                 break;
             case Action.Cancel:
+                break;
+            case Action.GetSenses:
                 break;
             default:
                 break; ;
