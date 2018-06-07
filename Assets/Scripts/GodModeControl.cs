@@ -584,7 +584,7 @@ public class GodModeControl : MonoBehaviour
                     Dictionary<Material, string> auxDict = gO.Value;
                     foreach (Material m in auxRenderer.materials)
                     {
-                        m.shader = Shader.Find(auxDict[m])
+                        m.shader = Shader.Find(auxDict[m]);
                     }
                 }
                 else

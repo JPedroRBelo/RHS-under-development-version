@@ -84,6 +84,7 @@ public class DoorManager : Status {
             }
             else
             {
+
                 locationsReferences[IN].position = inClosed.position;
                 locationsReferences[OUT].position = outClosed.position;
             }
