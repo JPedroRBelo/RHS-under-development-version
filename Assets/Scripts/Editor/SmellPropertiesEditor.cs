@@ -12,7 +12,7 @@ class DecalMeshHelperEditor : Editor
         DrawDefaultInspector();
         if (GUILayout.Button("Apply"))
         {
-            smellProperties.applyValues();
+            //smellProperties.applyValues();
         }
             
     }

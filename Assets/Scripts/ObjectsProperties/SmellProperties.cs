@@ -19,17 +19,16 @@ using OntSenseCSharpAPI;
 
 
 public class SmellProperties : MonoBehaviour {
-
-    public OlfactoryAttribute smellType;
+    
     private string nameSmellType;
     private ParticleSystem particleSystem;
     ParticleSystem.MainModule psmain;
     private Color particleColor;
    
     public float alphaColor = 0.65f;
-
+    public OdorComposition odorComposition = new OdorComposition(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
     public Color color;
-    public static Dictionary<OlfactoryAttribute, Color> DictSmellColors;
+   // public static Dictionary<OlfactoryAttribute, Color> DictSmellColors;
 
     // Use this for initialization
     void Start () {
@@ -37,12 +36,12 @@ public class SmellProperties : MonoBehaviour {
         particleSystem = GetComponentsInChildren<ParticleSystem>()[0];
         psmain = particleSystem.main;
         nameSmellType = getSmellStatus();
-        applyValues();
+        //applyValues();
 	}
 	
 	// Update is called once per frame
 
-    public void applyValues()
+   /* public void applyValues()
     {
         DictSmellColors = new Dictionary<OlfactoryAttribute, Color>()
         {
@@ -60,17 +59,24 @@ public class SmellProperties : MonoBehaviour {
         };
         psmain.startColor = DictSmellColors[smellType];
         nameSmellType = getSmellStatus();
-    }
+    }*/
 
     public string getSmellStatus()
     {
-        string str = "Smell Type: " + smellType.ToString(); 
+
+        string str = "Chemical Level: " + odorComposition.chemicalLevel;
+        str += "\nDecayed Level: " + odorComposition.decayedLevel;
+        str += "\nFragrant Level: " + odorComposition.fragrantLevel;
+        str += "\nFruity Level: " + odorComposition.fruityLevel;
+        str += "\nLemon Level: " + odorComposition.lemonLevel;
+        str += "\nMinty Level: " + odorComposition.mintyLevel;
+        str += "\nPopcorn Level: " + odorComposition.popcornLevel;
+        str += "\nPungent Level: " + odorComposition.pungentLevel;
+        str += "\nSweet Level: " + odorComposition.sweetLevel;
+        str += "\nWoody Level: " + odorComposition.woodyLevel;
         return str;
 
     }
 
-    public OlfactoryAttribute getSmellType()
-    {
-        return smellType;
-    }
+  
 }

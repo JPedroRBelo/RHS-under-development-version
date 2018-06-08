@@ -470,10 +470,10 @@ public class SensesManager : MonoBehaviour {
     private void insertSmellID(GameObject go, DateTime dt)
     {
         SmellProperties auxSmellProperties = go.GetComponent<SmellProperties>();
-        OlfactoryAttribute smellType = OlfactoryAttribute.noSmell;
+        OdorComposition smellType = new OdorComposition(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
         if (auxSmellProperties != null)
         {
-            smellType = auxSmellProperties.getSmellType();
+            smellType = auxSmellProperties.odorComposition;
         }
             RobotSmell rs = new RobotSmell(
             dt,                           // the event occurs now
@@ -495,10 +495,10 @@ public class SensesManager : MonoBehaviour {
     {
         CartesianPos cPos = new CartesianPos(go.transform.position.x, go.transform.position.y, go.transform.position.z);
         SmellProperties auxSmellProperties = go.GetComponent<SmellProperties>();
-        OlfactoryAttribute smellType = OlfactoryAttribute.noSmell;
+        OdorComposition smellType = new OdorComposition(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
         if (auxSmellProperties != null)
         {
-            smellType = auxSmellProperties.getSmellType();
+            smellType = auxSmellProperties.odorComposition;
         }
         RobotSmell rs = new RobotSmell(
            dt,                           // the event occurs now

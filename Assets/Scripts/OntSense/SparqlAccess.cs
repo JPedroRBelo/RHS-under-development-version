@@ -30,7 +30,7 @@
 ///                         "T" : touch event identifier        Example: T9876543214 
 ///                         "H" : hear event identifier         Example: H1961080801 
 /// 
-///                    Note: An object is the superclass of: Human and Robot concepts, so they also starts with "O" letter
+///                    Note: Object is the superclass of: Human and Robot concepts, so they also starts with "O" letter
 /// 
 /// 
 /// 
@@ -69,7 +69,7 @@
 
 namespace OntSenseCSharpAPI
 {
-	public sealed class SparqlAccess
+    public sealed class SparqlAccess
     {
         /// Define a string format adherent to XML Schema (XSD) Date and Time Data type.
         /// for use:  String = DateTime.ToString(XSD_DATETIME);
@@ -115,7 +115,7 @@ namespace OntSenseCSharpAPI
 
 
         /// script for a sparql insert operation with color information.
-        public static readonly string INSERT_COLOR = 
+        public static readonly string INSERT_COLOR =
     "PREFIX ontsense: <http://example.org/sense#>" +
     "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" +
     "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
@@ -139,7 +139,7 @@ namespace OntSenseCSharpAPI
     "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
     " INSERT DATA" +
     "    {{" +
-    "            ontsense:O{1:D10} rdf:type sumo:Object;" +        // {0} defines the object Ex:  O0000000789
+    "            ontsense:O{0:D10} rdf:type sumo:Object;" +        // {0} defines the object Ex:  O0000000789
     "            ontsense:objectId 	\"{1}\"^^xsd:long ;" +         // {1} defines the unique objectId  Ex:  1234567892		 		
     "            ontsense:hasColor ontsense:C{0:D10} ;" +          // {0} also defines the color id Ex:  C0000000789		
     "            ontsense:isMadeOf ontsense:{2} ; " +              // {2} defines the Material		
@@ -160,7 +160,7 @@ namespace OntSenseCSharpAPI
     "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
     " INSERT DATA" +
     "    {{" +
-    "            ontsense:O{1:D10} rdf:type ontsense:Human;" +     // {0} defines the object Ex:  O0000000789
+    "            ontsense:O{0:D10} rdf:type ontsense:Human;" +     // {0} defines the object Ex:  O0000000789
     "            ontsense:objectId 	\"{1}\"^^xsd:long ;" +         // {1} defines the unique objectId  Ex:  1234567892		 		
     "            ontsense:hasColor ontsense:C{0:D10} ;" +          // {0} also defines the Color  Ex:  C0000000789		
     "            ontsense:isMadeOf ontsense:{2} ; " +              // {2} defines the Material		
@@ -175,16 +175,17 @@ namespace OntSenseCSharpAPI
 
 
 
+
         /// script for a sparql insert operation with Robot agent information
         public static string INSERT_ROBOT =
         "PREFIX sumo: <http://www.inf.ufrgs.br/phi-group/ontologies/sumo.owl#>" +
         "PREFIX ontsense: <http://example.org/sense#>" +
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-	"PREFIX cora: <http://www.inf.ufrgs.br/phi-group/ontologies/cora.owl#> " +
+    "PREFIX cora: <http://www.inf.ufrgs.br/phi-group/ontologies/cora.owl#> " +
         " INSERT DATA" +
         "    {{" +
-        "            ontsense:O{1:D10} rdf:type cora:Robot;" +         // {0} defines the object Ex:  O0000000789
+        "            ontsense:O{0:D10} rdf:type cora:Robot;" +         // {0} defines the object Ex:  O0000000789
         "            ontsense:objectId 	\"{1}\"^^xsd:long ;" +         // {1} defines the unique objectId  Ex:  1234567892		 		
         "            ontsense:hasColor ontsense:C{0:D10} ;" +          // {0} also defines the Color  Ex:  C0000000789		
         "            ontsense:isMadeOf ontsense:{2} ; " +              // {2} defines the Material		
@@ -231,7 +232,16 @@ namespace OntSenseCSharpAPI
         "       rdf:type owl:NamedIndividual;" +
         "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +            // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
         "       ontsense:isPositionedAt ontsense:L{0:D10} ;" +           // {0} also defines the CartesianPosition  Ex:  L0000002111
-        "       ontsense:hasSmellType ontsense:{2} ." +                  // {2} defines the kind of smell
+        "       ontsense:chemicalLevel \"{2:G}\"^^xsd:double ;" +        // {2} defines the chemicalLevel odorant 	
+        "       ontsense:decayedLevel  \"{3:G}\"^^xsd:double ;" +        // {3} defines the decayedLevel odorant 	
+        "       ontsense:fragrantLevel \"{4:G}\"^^xsd:double ;" +        // {4} defines the fragrantLevel odorant 	
+        "       ontsense:fruityLevel   \"{5:G}\"^^xsd:double ;" +        // {5} defines the fruityLevel odorant 	
+        "       ontsense:lemonLevel    \"{6:G}\"^^xsd:double ;" +        // {6} defines the lemonLevel odorant 
+        "       ontsense:mintyLevel    \"{7:G}\"^^xsd:double ;" +        // {7} defines the mintyLevel odorant  	
+        "       ontsense:popcornLevel  \"{8:G}\"^^xsd:double ;" +        // {8} defines the popcornLevel odorant 	
+        "       ontsense:pungentLevel  \"{9:G}\"^^xsd:double ;" +        // {9} defines the pungentLevel odorant 	
+        "       ontsense:sweetLevel    \"{10:G}\"^^xsd:double ;" +       // {10} defines the sweetLevel odorant 	
+        "       ontsense:woodyLevel    \"{11:G}\"^^xsd:double ." +       // {11} defines the woodyLevel odorant 
         "}}";
 
 
@@ -270,7 +280,7 @@ namespace OntSenseCSharpAPI
         "       ontsense:H{0:D10} rdf:type ontsense:RobotHear;" +      // {0} defines the hear unique identifier  Ex:  H0000002129
         "       rdf:type owl:NamedIndividual;" +
         "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +          // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
-        "       ontsense:generateBy ontsense:O{2:D10} ;" +             // {2} defines the unique objectId  generated by Unity tool Ex:  O1234567892
+        "       ontsense:generateBy \"{2}\"^^xsd:long ;" +             // {2} defines the unique objectId  generated by Unity tool Ex:  1234567892
         "       ontsense:volume \"{3:G}\"^^xsd:double ;" +             // {3} defines the volume level
         "       ontsense:hasSoundType ontsense:{4} ;" +                // {4} defines the kind of sound 
         "       ontsense:detail \"{5}\"^^xsd:string ." +               // {5} defines a string dependent on the identity of the sound. It could be empty if no detail is associated.
@@ -286,14 +296,21 @@ namespace OntSenseCSharpAPI
         "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
         "INSERT DATA" +
         "   {{" +
-        "       ontsense:S{0:D10} rdf:type ontsense:RobotSmell;" +       // {0} defines the Smell unique identifier  Ex:  S0000002222
+        "       ontsense:S{0:D10} rdf:type ontsense:RobotSmell;" +        // {0} defines the Smell unique identifier  Ex:  S0000002222
         "       rdf:type owl:NamedIndividual;" +
-        "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +            // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
-        "       ontsense:generateBy ontsense:O{2:D10} ;" +               // {2} defines the unique objectId  received from Unity Ex:  O1234567892
-        "       ontsense:hasSmellType ontsense:{3} ." +                  // {3} defines the kind of smell
+        "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +             // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
+        "       ontsense:generateBy \"{2}\"^^xsd:long ;" +                // {2} defines the unique objectId  received from Unity Ex:  1234567892
+        "       ontsense:chemicalLevel \"{3:G}\"^^xsd:double ;" +         // {3} defines the chemicalLevel odorant 	
+        "       ontsense:decayedLevel  \"{4:G}\"^^xsd:double ;" +         // {4} defines the decayedLevel odorant 	
+        "       ontsense:fragrantLevel \"{5:G}\"^^xsd:double ;" +         // {5} defines the fragrantLevel odorant 	
+        "       ontsense:fruityLevel   \"{6:G}\"^^xsd:double ;" +         // {6} defines the fruityLevel odorant 	
+        "       ontsense:lemonLevel    \"{7:G}\"^^xsd:double ;" +         // {7} defines the lemonLevel odorant 
+        "       ontsense:mintyLevel    \"{8:G}\"^^xsd:double ;" +         // {8} defines the mintyLevel odorant  	
+        "       ontsense:popcornLevel \"{9:G}\"^^xsd:double ;" +         // {9} defines the popcornLevel odorant 	
+        "       ontsense:pungentLevel  \"{10:G}\"^^xsd:double ;" +        // {10} defines the pungentLevel odorant 	
+        "       ontsense:sweetLevel    \"{11:G}\"^^xsd:double ;" +        // {11} defines the sweetLevel odorant 	
+        "       ontsense:woodyLevel    \"{12:G}\"^^xsd:double ." +        // {12} defines the woodyLevel odorant 
         "}}";
-
-
 
 
         /// script for a sparql insert operation with touch sense  information
@@ -307,7 +324,7 @@ namespace OntSenseCSharpAPI
         "       ontsense:T{0:D10} rdf:type ontsense:RobotTouch;" +         // {0} defines the Touch unique identifier  Ex:  T0000003117
         "       rdf:type owl:NamedIndividual;" +
         "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +              // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
-        "       ontsense:generateBy ontsense:O{2:D10};" +                  // {2} defines the unique objectId  received from Unity Ex:  O1234567892
+        "       ontsense:generateBy \"{2}\"^^xsd:long ;" +                  // {2} defines the unique objectId  received from Unity Ex:  1234567892
         "       ontsense:temperature    \"{3:G}\"^^xsd:double ;" +         // {3} defines the temperature 	
         "       ontsense:hardness       \"{4:G}\"^^xsd:double ;" +         // {4} defines the hardness	
         "       ontsense:moisture       \"{5:G}\"^^xsd:double ;" +         // {5} defines the moisture	
@@ -320,7 +337,7 @@ namespace OntSenseCSharpAPI
 
 
         /// script for a sparql insert operation with taste sense  information
-        public static readonly string INSERT_TASTE = 
+        public static readonly string INSERT_TASTE =
         "PREFIX ontsense: <http://example.org/sense#>" +
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -330,7 +347,7 @@ namespace OntSenseCSharpAPI
         "       ontsense:A{0:D10} rdf:type ontsense:RobotTaste;" +       // {0} defines the Taste unique identifier  Ex:  A0000002117
         "       rdf:type owl:NamedIndividual;" +
         "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +            // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
-        "       ontsense:generateBy ontsense:O{2:D10} ;" +               // {2} defines the unique objectId  received from Unity Ex:  O1234567892
+        "       ontsense:generateBy \"{2}\"^^xsd:long ;" +               // {2} defines the unique objectId  received from Unity Ex:  1234567892
         "       ontsense:sweetness    \"{3:G}\"^^xsd:double ;" +         // {3} defines the temperature 	
         "       ontsense:umani        \"{4:G}\"^^xsd:double ;" +         // {4} defines the hardness	
         "       ontsense:saltiness    \"{5:G}\"^^xsd:double ;" +         // {5} defines the moisture	
@@ -354,7 +371,7 @@ namespace OntSenseCSharpAPI
         "       ontsense:V{0:D10} rdf:type ontsense:RobotVision;" +      // {0} defines the vision unique identifier  Ex:  V0000002900
         "       rdf:type owl:NamedIndividual;" +
         "       ontsense:occursAt 	\"{1}\"^^xsd:dateTime;" +            // {1} defines the instant of event ocurrence. It is adherent to XSD_DATETIME = @"yyyy-MM-ddThh:mm:ss.fff";
-        "       ontsense:generateBy ontsense:O{2:D10} ." +               // {2} defines the unique objectId  received from Unity Ex:  O1234567892
+        "       ontsense:generateBy \"{2}\"^^xsd:long ." +               // {2} defines the unique objectId  received from Unity Ex:  1234567892
         "}}";
 
 
@@ -365,31 +382,30 @@ namespace OntSenseCSharpAPI
 
 
         /// script for a sparql query operation with all sense information after a given time
-        /// 
+        /// future develoment
         /// 
         /// 
         public static readonly string QUERY_ALL_AFTER_TIME = " ";
 
-		/// script for a sparql query operation with hear sense  information after a given time
-		public static readonly string QUERY_HEAR_AFTER_TIME = " ";
+        /// script for a sparql query operation with hear sense  information after a given time
+        public static readonly string QUERY_HEAR_AFTER_TIME = " ";
 
-		/// script for a sparql query operation with smell sense  information after a given time
-		public static readonly string QUERY_SMELL_AFTER_TIME = " ";
+        /// script for a sparql query operation with smell sense  information after a given time
+        public static readonly string QUERY_SMELL_AFTER_TIME = " ";
 
-		/// script for a sparql query operation with taste sense  information after a given time
-		public static readonly string QUERY_TASTE_AFTER_TIME = " ";
+        /// script for a sparql query operation with taste sense  information after a given time
+        public static readonly string QUERY_TASTE_AFTER_TIME = " ";
 
-		/// script for a sparql query operation with touch sense  information after a given time
-		public static readonly string QUERY_TOUCH_AFTER_TIME = " ";
+        /// script for a sparql query operation with touch sense  information after a given time
+        public static readonly string QUERY_TOUCH_AFTER_TIME = " ";
 
-		/// script for a sparql query operation with vision sense  information after a given time
-		public static readonly string QUERY_VISION_AFTER_TIME = " ";
+        /// script for a sparql query operation with vision sense  information after a given time
+        public static readonly string QUERY_VISION_AFTER_TIME = " ";
 
-		/// script for a sparql delete operation  after a given time
-		public static readonly string DELETE_BEFORE_TIME = " ";
+        /// script for a sparql delete operation  after a given time
+        public static readonly string DELETE_BEFORE_TIME = " ";
 
 
-	}
+    }
 
 }
-
